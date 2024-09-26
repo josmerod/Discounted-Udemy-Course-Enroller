@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import *
 
-VERSION = "v2.2"
+VERSION = "v2.2b"
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
@@ -32,6 +32,10 @@ LINKS = {
     "support": "https://techtanic.github.io/duce/support",
     "discord": "https://discord.gg/wFsfhJh4Rh",
 }
+
+scrapper_timeout_period = 10  # seconds
+scrapper_max_retries = 5  # retries
+
 
 
 class LoginException(Exception):
@@ -99,8 +103,14 @@ class Scraper:
     def append_to_list(self, target: list, title: str, link: str):
         target.append((title, link))
 
-    def fetch_page_content(self, url: str, headers: dict = None) -> bytes:
-        return requests.get(url, headers=headers).content
+    def fetch_page_content(self, url: str, headers: dict = None, timeout_retries=scrapper_max_retries) -> bytes:
+        try:
+            return requests.get(url, headers=headers, timeout=scrapper_timeout_period).content
+        except requests.exceptions.Timeout:
+            if timeout_retries > 0:
+                return self.fetch_page_content(url, headers, timeout_retries=timeout_retries-1)
+            else:
+                return None
 
     def parse_html(self, content: str):
         return bs(content, "html5lib")
@@ -138,6 +148,10 @@ class Scraper:
             }
 
             for page in range(1, 4):
+                # start timer for each page with timeout
+                start_time = time.time()
+                retries = 0
+                
                 content = self.fetch_page_content(
                     f"https://www.discudemy.com/all/{page}", headers=head
                 )

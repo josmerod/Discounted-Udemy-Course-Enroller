@@ -9,7 +9,25 @@
     <a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller"><img src="https://cdn.discordapp.com/attachments/823472016999972884/841661124410736710/standard_13.gif"></a>
 </p>
 
+# Motivation and justification of this fork
+
+This repository is a fork of the original repository in order to make some enhancements and fixes to the original code. I'm doing this to practice and get more confortable improving existing projects, refining my Python skills and to contribute back to the community. techtanic has done a great job with the original project and I'm just trying to make it better. 
+
+ I've added the following features:
+- Fixed the program getting stuck when retrieving the list of courses from the websites, by adding a timeout to the requests and a retry mechanism.
+- Added total number of courses count on the CLI version after the process has been completed
+- Modified the original cli-settings file to use the credentials from Google Chrome and to filter to specific requirements. 
+
+This is a work in progress and will add more features in the future. If you have any suggestions, please let me know.
+
+My next objectives are:
+- Remove Tutorial Bar from the list of websites, has been causing some issues with the program. Target: improve the general reliability of the program.
+- Add new websites to get coupons from that might be interesting. Target: get more profficiency with BS4 and requests.
+- Create a trigger to notify when the original repository has been updated. Target: automate the process of updating the forked repository.
+
 # Discounted Udemy Course Enroller
+
+
 
 > Software to enroll in available Udemy Paid/Free courses having coupons automatically to your Udemy account.
 
@@ -25,7 +43,15 @@ Everything you need can be on the website.: [duce.techtanic.space](https://duce.
 - CLI version available for automation
 - Advanced filters
 
-# Downloads
+# Installation steps (this repository)
+
+1. Clone the repository
+2. Install the requirements via `pip3 install -r requirements.txt`
+3. (Optional) Enter on Google Chrome and log in to your Udemy account.
+4. Modify if you want the `duce-cli-settings.json` file. By default, it will use the credentials from Google Chrome
+5. Run ./cli.py or ./gui.py (first one is more recommended for resource friendly)
+
+# Downloads (original repository)
 
 <table>
 <thead >
@@ -65,9 +91,9 @@ Everything you need can be on the website.: [duce.techtanic.space](https://duce.
 
 ## Disclaimer
 
-![](https://cdn.discordapp.com/attachments/749247352073617518/785906195767754753/unknown.png)
+This is not the official repository, just a set of changes I've made to ensure more reliability. I'll try to keep up to date to the original repository.
 
-## Donate
+## Donate (from the original creator)
 
 BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz`
 

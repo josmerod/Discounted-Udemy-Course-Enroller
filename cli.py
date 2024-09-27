@@ -104,6 +104,9 @@ try:
     udemy.print(f"Excluded Courses: {udemy.excluded_c}", color="yellow")
     udemy.print(f"Expired Courses: {udemy.expired_c}", color="red")
 
+    new_enrolled_courses_c = len(udemy.enrolled_courses) + udemy.successfully_enrolled_c
+    udemy.print(f"Total Enrolled Courses: {new_enrolled_courses_c}", color="magenta")
+
 except:
     e = traceback.format_exc()
     print(

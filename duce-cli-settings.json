@@ -15,32 +15,32 @@
         "Teaching & Academics": true
     },
     "languages": {
-        "Arabic": true,
-        "Chinese": true,
-        "Dutch": true,
+        "Arabic": false,
+        "Chinese": false,
+        "Dutch": false,
         "English": true,
-        "French": true,
-        "German": true,
-        "Hindi": true,
-        "Indonesian": true,
+        "French": false,
+        "German": false,
+        "Hindi": false,
+        "Indonesian": false,
         "Italian": true,
         "Japanese": true,
-        "Korean": true,
-        "Nepali": true,
-        "Polish": true,
+        "Korean": false,
+        "Nepali": false,
+        "Polish": false,
         "Portuguese": true,
-        "Romanian": true,
+        "Romanian": false,
         "Russian": true,
-        "Spanish": true,
-        "Thai": true,
-        "Turkish": true,
-        "Urdu": true
+        "Spanish": false,
+        "Thai": false,
+        "Turkish": false,
+        "Urdu": false
     },
     "sites": {
         "Real Discount": true,
         "Discudemy": true,
         "IDownloadCoupons": true,
-        "Tutorial Bar": true,
+        "Tutorial Bar": false,
         "E-next": true,
         "Course Vania": true,
         "Udemy Freebies": true
@@ -59,6 +59,6 @@
     "password": "",
     "save_txt": true,
     "discounted_only": false,
-    "use_browser_cookies": false,
-    "course_update_threshold_months": 24
+    "use_browser_cookies": true,
+    "course_update_threshold_months": 240
 }

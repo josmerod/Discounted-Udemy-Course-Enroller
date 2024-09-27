@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import *
 
-VERSION = "v2.2b"
+VERSION = "v2.2_jmmr_gold"
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
@@ -148,10 +148,7 @@ class Scraper:
             }
 
             for page in range(1, 4):
-                # start timer for each page with timeout
-                start_time = time.time()
-                retries = 0
-                
+                # start timer for each page with timeout              
                 content = self.fetch_page_content(
                     f"https://www.discudemy.com/all/{page}", headers=head
                 )

@@ -22,6 +22,8 @@ This is a work in progress and will add more features in the future. If you have
 
 My next objectives are:
 - Remove Tutorial Bar from the list of websites, has been causing some issues with the program. Target: improve the general reliability of the program.
+- Create a scheduler to execute CLI version at specific times. Target: automate the process of getting coupons.
+- Being able to export the list of courses to a file. Target: being able to do a quick view of courses and to priorize them for studying. 
 - Add new websites to get coupons from that might be interesting. Target: get more profficiency with BS4 and requests.
 - Create a trigger to notify when the original repository has been updated. Target: automate the process of updating the forked repository.
 

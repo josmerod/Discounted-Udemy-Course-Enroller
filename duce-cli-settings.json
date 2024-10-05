@@ -43,7 +43,8 @@
         "Tutorial Bar": false,
         "E-next": true,
         "Course Vania": true,
-        "Udemy Freebies": true
+        "Udemy Freebies": true,
+        "Course Joiner": true
     },
     "min_rating": 0.0,
     "instructor_exclude": [

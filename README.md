@@ -17,14 +17,14 @@ This repository is a fork of the original repository in order to make some enhan
 - Fixed the program getting stuck when retrieving the list of courses from the websites, by adding a timeout to the requests and a retry mechanism.
 - Added total number of courses count on the CLI version after the process has been completed
 - Modified the original cli-settings file to use the credentials from Google Chrome and to filter to specific requirements. 
+- Added Course Joiner as a source for courses (in draft version, needs to improve performance).
 
 This is a work in progress and will add more features in the future. If you have any suggestions, please let me know.
 
 My next objectives are:
 - Remove Tutorial Bar from the list of websites, has been causing some issues with the program. Target: improve the general reliability of the program.
-- Create a scheduler to execute CLI version at specific times. Target: automate the process of getting coupons.
-- Being able to export the list of courses to a file. Target: being able to do a quick view of courses and to priorize them for studying. 
 - Add new websites to get coupons from that might be interesting. Target: get more profficiency with BS4 and requests.
+  - Added Course Joiner, suggestions are welcome!
 - Create a trigger to notify when the original repository has been updated. Target: automate the process of updating the forked repository.
 
 # Discounted Udemy Course Enroller

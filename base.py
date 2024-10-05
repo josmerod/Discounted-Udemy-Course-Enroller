@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import *
 
-VERSION = "v2.2_jmmr_gold"
+VERSION = "v2.3_jmmr_gold"
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
@@ -25,6 +25,7 @@ scraper_dict: dict = {
     "IDownloadCoupons": "idc",
     "E-next": "en",
     "Discudemy": "du",
+    "Course Joiner": "cj"
 }
 
 LINKS = {
@@ -64,7 +65,7 @@ class RaisingThread(threading.Thread):
 
 class Scraper:
     """
-    Scrapers: RD,TB, CV, IDC, EN, DU, UF
+    Scrapers: RD,TB, CV, IDC, EN, DU, UF, CJ
     """
 
     def __init__(
@@ -147,7 +148,7 @@ class Scraper:
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
             }
 
-            for page in range(1, 4):
+            for page in range(1, 6):
                 # start timer for each page with timeout              
                 content = self.fetch_page_content(
                     f"https://www.discudemy.com/all/{page}", headers=head
@@ -180,7 +181,7 @@ class Scraper:
     def uf(self):
         try:
             all_items = []
-            for page in range(1, 4):
+            for page in range(1, 6):
                 content = self.fetch_page_content(
                     f"https://www.udemyfreebies.com/free-udemy-courses/{page}"
                 )
@@ -208,7 +209,7 @@ class Scraper:
         try:
             all_items = []
 
-            for page in range(1, 5):
+            for page in range(1, 8):
                 content = self.fetch_page_content(
                     f"https://www.tutorialbar.com/all-courses/page/{page}"
                 )
@@ -327,7 +328,7 @@ class Scraper:
     def idc(self):
         try:
             all_items = []
-            for page in range(1, 5):
+            for page in range(1, 8):
                 content = self.fetch_page_content(
                     f"https://idownloadcoupon.com/product-category/udemy/page/{page}"
                 )
@@ -367,7 +368,7 @@ class Scraper:
     def en(self):
         try:
             all_items = []
-            for page in range(1, 6):
+            for page in range(1, 8):
                 content = self.fetch_page_content(
                     f"https://jobs.e-next.in/course/udemy/{page}"
                 )
@@ -395,6 +396,47 @@ class Scraper:
         if self.debug:
             print("Return Length:", len(self.en_data))
             print(self.en_data)
+
+    def cj(self):
+        try:
+            all_items = []
+
+            for page in range(1, 2):
+                content = self.fetch_page_content(
+                    f"https://www.coursejoiner.com/category/free-udemy/page/{page}/"
+                )
+                soup = self.parse_html(content)
+                page_items = soup.find_all(
+                    "h2", class_="card-title entry-title"
+                )
+                all_items.extend(page_items)
+            self.cj_length = len(all_items)
+            if self.debug:
+                print("Length:", self.cj_length)
+
+            for index, item in enumerate(all_items):
+                self.cj_progress = index
+                title = item.a.string
+                url = item.a["href"]
+                content = self.fetch_page_content(url)
+                soup = self.parse_html(content)
+                link = soup.find("a", class_="wp-block-button__link has-black-color has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background has-text-color has-background wp-element-button")["href"]
+                session = requests.Session()
+                session.strict_redirects = False    
+                while "www.udemy.com" not in link:
+                    link_b = session.get(link, allow_redirects=True).url
+                    # Find url in the response (hidden field)
+                    # TODO: Maybe optimize it?
+                    res_c = self.fetch_page_content(link_b)
+                    soup_c = self.parse_html(res_c)
+                    link_c = soup_c.find("span", id="url").get_text()
+                    link = requests.get(link_c, allow_redirects=True).url
+                self.append_to_list(self.cj_data, title, link)       
+        except:
+            self.handle_exception("cj")
+        self.cj_done = True
+        if self.debug:
+            print("Return Length:", len(self.cj_data))
 
 
 class Udemy:

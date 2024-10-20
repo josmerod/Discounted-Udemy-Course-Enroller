@@ -37,14 +37,15 @@
         "Urdu": false
     },
     "sites": {
-        "Real Discount": true,
+        "Real Discount": false,
         "Discudemy": true,
         "IDownloadCoupons": true,
         "Tutorial Bar": false,
         "E-next": true,
         "Course Vania": true,
         "Udemy Freebies": true,
-        "Course Joiner": true
+        "Course Joiner": false,
+        "Cursos Dev": true
     },
     "min_rating": 0.0,
     "instructor_exclude": [

@@ -4,7 +4,7 @@ import re
 import threading
 import time
 import traceback
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 from urllib.parse import parse_qs, unquote, urlparse, urlsplit, urlunparse
 
@@ -25,7 +25,8 @@ scraper_dict: dict = {
     "IDownloadCoupons": "idc",
     "E-next": "en",
     "Discudemy": "du",
-    "Course Joiner": "cj"
+    "Course Joiner": "cj",
+    "Cursos Dev": "cd"
 }
 
 LINKS = {
@@ -368,7 +369,7 @@ class Scraper:
     def en(self):
         try:
             all_items = []
-            for page in range(1, 8):
+            for page in range(1, 10):
                 content = self.fetch_page_content(
                     f"https://jobs.e-next.in/course/udemy/{page}"
                 )
@@ -431,13 +432,50 @@ class Scraper:
                     soup_c = self.parse_html(res_c)
                     link_c = soup_c.find("span", id="url").get_text()
                     link = requests.get(link_c, allow_redirects=True).url
-                self.append_to_list(self.cj_data, title, link)       
+                self.append_to_list(self.cj_data, title, link)     
         except:
             self.handle_exception("cj")
         self.cj_done = True
         if self.debug:
             print("Return Length:", len(self.cj_data))
 
+    def cd(self):
+        try:
+            all_items = []
+
+            for page in range(1, 3):
+                content = self.fetch_page_content(
+                    f"https://www.cursosdev.com/?page={page}/"
+                )
+                soup = self.parse_html(content)
+                page_items = soup.find_all(
+                    "a", class_="c-card block bg-white shadow-md hover:shadow-xl rounded-lg overflow-hidden"
+                )
+                
+                all_items.extend(page_items)
+            self.cd_length = len(all_items)
+            if self.debug:
+                print("Length:", self.cd_length)
+
+            for index, item in enumerate(all_items):
+                self.cd_progress = index
+                
+                url = item["href"]
+                if "cursosdev.com" not in url:
+                    continue
+                content = self.fetch_page_content(url)
+                soup = self.parse_html(content)
+                title = soup.find("a", class_="text-4xl text-gray-700 font-bold hover:underline").string.strip()
+                link = soup.find("a", class_="border border-purple-800 bg-indigo-900 hover:bg-indigo-500 my-8 mr-2 text-white block rounded-sm font-bold py-4 px-6 ml-2 flex text-center items-center")["href"]
+                session = requests.Session()
+                session.strict_redirects = False
+                link = session.get(link, allow_redirects=True).url
+                self.append_to_list(self.cd_data, title, link)
+        except:
+            self.handle_exception("cd")
+        self.cd_done = True
+        if self.debug:
+            print("Return Length:", len(self.cd_data))
 
 class Udemy:
     def __init__(self, interface: str, debug: bool = False):
@@ -1000,6 +1038,7 @@ class Udemy:
         checkout_response = self.discounted_checkout(coupon_code, course_id)
         if checkout_response["status"]:
             self.print("Successfully Enrolled To Course :)", color="green")
+            self.print("This course would have cost you " + str(amount) + " EUR. Enjoy!", color="green")
             self.successfully_enrolled_c += 1
             self.enrolled_courses[course_id] = self.get_now_to_utc()
             self.amount_saved_c += amount

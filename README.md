@@ -18,6 +18,7 @@ This repository is a fork of the original repository in order to make some enhan
 - Added total number of courses count on the CLI version after the process has been completed
 - Modified the original cli-settings file to use the credentials from Google Chrome and to filter to specific requirements. 
 - Added Course Joiner as a source for courses (in draft version, needs to improve performance).
+- Added Cursos Dev as a source for courses (in draft version, testing and tuning up the number of pages, performance is OK)
 
 This is a work in progress and will add more features in the future. If you have any suggestions, please let me know.
 
@@ -26,7 +27,8 @@ My next objectives are:
 - Add new websites to get coupons from that might be interesting. Target: get more profficiency with BS4 and requests.
   - Added Course Joiner, suggestions are welcome!
 - Create a trigger to notify when the original repository has been updated. Target: automate the process of updating the forked repository.
-
+- Notify a custom Telegram chatbot of new course
+- Speedup codebase for joining courses
 # Discounted Udemy Course Enroller
 
 

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import math
 import threading
 import time
 import traceback
@@ -26,7 +27,7 @@ scraper_dict: dict = {
     "E-next": "en",
     "Discudemy": "du",
     "Course Joiner": "cj",
-    "Cursos Dev": "cd"
+    "Cursos Dev": "cd",
 }
 
 LINKS = {
@@ -37,7 +38,6 @@ LINKS = {
 
 scrapper_timeout_period = 10  # seconds
 scrapper_max_retries = 5  # retries
-
 
 
 class LoginException(Exception):
@@ -105,12 +105,18 @@ class Scraper:
     def append_to_list(self, target: list, title: str, link: str):
         target.append((title, link))
 
-    def fetch_page_content(self, url: str, headers: dict = None, timeout_retries=scrapper_max_retries) -> bytes:
+    def fetch_page_content(
+        self, url: str, headers: dict = None, timeout_retries=scrapper_max_retries
+    ) -> bytes:
         try:
-            return requests.get(url, headers=headers, timeout=scrapper_timeout_period).content
+            return requests.get(
+                url, headers=headers, timeout=scrapper_timeout_period
+            ).content
         except requests.exceptions.Timeout:
             if timeout_retries > 0:
-                return self.fetch_page_content(url, headers, timeout_retries=timeout_retries-1)
+                return self.fetch_page_content(
+                    url, headers, timeout_retries=timeout_retries - 1
+                )
             else:
                 return None
 
@@ -150,7 +156,7 @@ class Scraper:
             }
 
             for page in range(1, 6):
-                # start timer for each page with timeout              
+                # start timer for each page with timeout
                 content = self.fetch_page_content(
                     f"https://www.discudemy.com/all/{page}", headers=head
                 )
@@ -407,9 +413,7 @@ class Scraper:
                     f"https://www.coursejoiner.com/category/free-udemy/page/{page}/"
                 )
                 soup = self.parse_html(content)
-                page_items = soup.find_all(
-                    "h2", class_="card-title entry-title"
-                )
+                page_items = soup.find_all("h2", class_="card-title entry-title")
                 all_items.extend(page_items)
             self.cj_length = len(all_items)
             if self.debug:
@@ -421,18 +425,20 @@ class Scraper:
                 url = item.a["href"]
                 content = self.fetch_page_content(url)
                 soup = self.parse_html(content)
-                link = soup.find("a", class_="wp-block-button__link has-black-color has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background has-text-color has-background wp-element-button")["href"]
+                link = soup.find(
+                    "a",
+                    class_="wp-block-button__link has-black-color has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background has-text-color has-background wp-element-button",
+                )["href"]
                 session = requests.Session()
-                session.strict_redirects = False    
+                session.strict_redirects = False
                 while "www.udemy.com" not in link:
                     link_b = session.get(link, allow_redirects=True).url
                     # Find url in the response (hidden field)
-                    # TODO: Maybe optimize it?
                     res_c = self.fetch_page_content(link_b)
                     soup_c = self.parse_html(res_c)
                     link_c = soup_c.find("span", id="url").get_text()
                     link = requests.get(link_c, allow_redirects=True).url
-                self.append_to_list(self.cj_data, title, link)     
+                self.append_to_list(self.cj_data, title, link)
         except:
             self.handle_exception("cj")
         self.cj_done = True
@@ -443,15 +449,16 @@ class Scraper:
         try:
             all_items = []
 
-            for page in range(1, 3):
+            for page in range(1, 2):
                 content = self.fetch_page_content(
                     f"https://www.cursosdev.com/?page={page}/"
                 )
                 soup = self.parse_html(content)
                 page_items = soup.find_all(
-                    "a", class_="c-card block bg-white shadow-md hover:shadow-xl rounded-lg overflow-hidden"
+                    "a",
+                    class_="c-card block bg-white shadow-md hover:shadow-xl rounded-lg overflow-hidden",
                 )
-                
+
                 all_items.extend(page_items)
             self.cd_length = len(all_items)
             if self.debug:
@@ -459,14 +466,19 @@ class Scraper:
 
             for index, item in enumerate(all_items):
                 self.cd_progress = index
-                
+
                 url = item["href"]
                 if "cursosdev.com" not in url:
                     continue
                 content = self.fetch_page_content(url)
                 soup = self.parse_html(content)
-                title = soup.find("a", class_="text-4xl text-gray-700 font-bold hover:underline").string.strip()
-                link = soup.find("a", class_="border border-purple-800 bg-indigo-900 hover:bg-indigo-500 my-8 mr-2 text-white block rounded-sm font-bold py-4 px-6 ml-2 flex text-center items-center")["href"]
+                title = soup.find(
+                    "a", class_="text-4xl text-gray-700 font-bold hover:underline"
+                ).string.strip()
+                link = soup.find(
+                    "a",
+                    class_="border border-purple-800 bg-indigo-900 hover:bg-indigo-500 my-8 mr-2 text-white block rounded-sm font-bold py-4 px-6 ml-2 flex text-center items-center",
+                )["href"]
                 session = requests.Session()
                 session.strict_redirects = False
                 link = session.get(link, allow_redirects=True).url
@@ -476,6 +488,7 @@ class Scraper:
         self.cd_done = True
         if self.debug:
             print("Return Length:", len(self.cd_data))
+
 
 class Udemy:
     def __init__(self, interface: str, debug: bool = False):
@@ -1038,7 +1051,10 @@ class Udemy:
         checkout_response = self.discounted_checkout(coupon_code, course_id)
         if checkout_response["status"]:
             self.print("Successfully Enrolled To Course :)", color="green")
-            self.print("This course would have cost you " + str(amount) + " EUR. Enjoy!", color="green")
+            self.print(
+                "This course would have cost you " + str(math.round(amount, 2)) + " EUR. Enjoy!",
+                color="green",
+            )
             self.successfully_enrolled_c += 1
             self.enrolled_courses[course_id] = self.get_now_to_utc()
             self.amount_saved_c += amount

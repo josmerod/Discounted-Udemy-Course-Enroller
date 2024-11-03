@@ -1,7 +1,7 @@
 import json
 import os
 import re
-import math
+import sys
 import threading
 import time
 import traceback
@@ -14,9 +14,9 @@ import requests
 import rookiepy
 from bs4 import BeautifulSoup as bs
 
-from colors import *
+from colors import fb, fc, fg, flb, flg, fm, fr, fy
 
-VERSION = "v2.3_jmmr_gold"
+VERSION = "v2.4_jmmr_gold"
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
@@ -62,6 +62,12 @@ class RaisingThread(threading.Thread):
         super().join(timeout=timeout)
         if self._exc:
             raise self._exc
+
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 
 class Scraper:
@@ -222,7 +228,7 @@ class Scraper:
                 )
                 soup = self.parse_html(content)
                 page_items = soup.find_all(
-                    "h3", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
+                    "h2", class_="mb15 mt0 font110 mobfont100 fontnormal lineheight20"
                 )
                 all_items.extend(page_items)
             self.tb_length = len(all_items)
@@ -541,11 +547,10 @@ class Udemy:
             with open(f"duce-{self.interface}-settings.json") as f:
                 self.settings = json.load(f)
         except FileNotFoundError:
-            self.settings = dict(
-                requests.get(
-                    f"https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/master/duce-{self.interface}-settings.json"
-                ).json()
-            )
+            with open(
+                resource_path(f"default-duce-{self.interface}-settings.json")
+            ) as f:
+                self.settings = json.load(f)
         if (
             self.interface == "cli" and "use_browser_cookies" not in self.settings
         ):  # v2.1
@@ -629,7 +634,7 @@ class Udemy:
 
         s = requests.session()
         r = s.get(
-            "https://www.udemy.com/join/signup-popup/",
+            "https://www.udemy.com/join/signup-popup/?locale=en_US&response_type=html&next=https%3A%2F%2Fwww.udemy.com%2Flogout%2F",
             headers={"User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)"},
             # headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0",
             #     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -664,9 +669,10 @@ class Udemy:
                 "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
                 "Accept": "application/json, text/plain, */*",
                 "Accept-Language": "en-GB,en;q=0.5",
-                "Referer": "https://www.udemy.com/join/login-popup/?locale=en_US&response_type=html&next=https%3A%2F%2Fwww.udemy.com%2F",
+                "Referer": "https://www.udemy.com/join/login-popup/?passwordredirect=True&response_type=json",
                 "Origin": "https://www.udemy.com",
                 "DNT": "1",
+                "Host": "www.udemy.com",
                 "Connection": "keep-alive",
                 "Sec-Fetch-Dest": "empty",
                 "Sec-Fetch-Mode": "cors",
@@ -675,10 +681,9 @@ class Udemy:
                 "Cache-Control": "no-cache",
             }
         )
-        # r = s.get("https://www.udemy.com/join/login-popup/?response_type=json")
         s = cloudscraper.create_scraper(sess=s)
         r = s.post(
-            "https://www.udemy.com/join/login-popup/?response_type=json",
+            "https://www.udemy.com/join/login-popup/?passwordredirect=True&response_type=json",
             data=data,
             allow_redirects=False,
         )
@@ -738,7 +743,7 @@ class Udemy:
         r = r.json()
         if self.debug:
             print(r)
-        if r["header"]["isLoggedIn"] == False:
+        if not r["header"]["isLoggedIn"]:
             raise LoginException("Login Failed")
 
         self.display_name: str = r["header"]["user"]["display_name"]
@@ -841,32 +846,51 @@ class Udemy:
         )
 
     def get_course_id(self, url):
+        course = {
+            "course_id": None,
+            "url": url,
+            "is_invalid": False,
+            "is_free": None,
+            "is_excluded": None,
+            "retry": None,
+            "msg": "Report to developer",
+        }
         url = re.sub(r"\W+$", "", unquote(url))
         try:
             r = self.client.get(url)
         except requests.exceptions.ConnectionError:
             if self.debug:
                 print(r.text)
-            return "retry", url, False
-
+            course["retry"] = True
+            return course
+        course["url"] = r.url
         soup = bs(r.content, "html5lib")
-        if self.debug:
-            with open("test/soup.html", "w", encoding="utf-8") as f:
-                f.write(str(soup))
-        course_id = soup.find("body").get("data-clp-course-id", "invalid")
-        if course_id == "invalid":
-            return "invalid", url, False
 
+        course_id = soup.find("body").get("data-clp-course-id", "invalid")
+
+        if course_id == "invalid":
+            course["is_invalid"] = True
+            course["msg"] = "Course ID not found: Report to developer"
+            return course
+        course["course_id"] = course_id
         dma = json.loads(soup.find("body")["data-module-args"])
         if self.debug:
-            with open("test/dma.json", "w") as f:
+            with open("debug/dma.json", "w") as f:
                 json.dump(dma, f, indent=4)
 
-        is_free = not dma["serverSideProps"]["course"].get("isPaid", True)
-        if not self.debug and self.is_course_excluded(dma):
-            return "excluded", r.url, False
+        if dma.get("view_restriction"):
+            course["is_invalid"] = True
+            course["msg"] = dma["serverSideProps"]["limitedAccess"]["errorMessage"][
+                "title"
+            ]
+            return course
 
-        return course_id, r.url, is_free
+        course["is_free"] = not dma["serverSideProps"]["course"].get("isPaid", True)
+        if not self.debug and self.is_course_excluded(dma):
+            course["is_excluded"] = True
+            return course
+
+        return course
 
     def is_course_excluded(self, dma):
         instructors = [
@@ -939,7 +963,7 @@ class Udemy:
                 self.title = title
                 self.link = link
                 self.print_course_info(previous_courses_count + index, total_courses)
-                self.handle_course_enrollment(index)
+                self.handle_course_enrollment()
             previous_courses_count += len(courses)
 
     def initialize_counters(self):
@@ -961,27 +985,30 @@ class Udemy:
         self.print(self.title, color="yellow", end=" ")
         self.print(self.link, color="blue")
 
-    def handle_course_enrollment(self, index):
-        course_id, self.link, is_free = self.get_course_id(self.link)
-
-        if course_id == "invalid":
-            self.print("Invalid Course", color="red")
+    def handle_course_enrollment(self):
+        course = self.get_course_id(self.link)
+        if course["is_invalid"]:
+            self.print(course["msg"], color="red")
             self.excluded_c += 1
-        elif course_id == "excluded":
+        elif course["retry"]:
+            self.print("Retrying...", color="red")
+            time.sleep(1)
+            self.handle_course_enrollment()
+        elif course["is_excluded"]:
             self.excluded_c += 1
-        elif not course_id:
-            self.print("X Course Expired", color="red")
-            self.expired_c += 1
-        elif course_id in self.enrolled_courses:
+        elif course["course_id"] in self.enrolled_courses:
             self.print(
-                f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[course_id])}",
+                f"You purchased this course on {self.get_date_from_utc(self.enrolled_courses[course['course_id']])}",
                 color="light blue",
             )
             self.already_enrolled_c += 1
-        elif is_free:
-            self.handle_free_course(course_id)
+        elif course["is_free"]:
+            self.handle_free_course(course["course_id"])
+        elif not course["is_free"]:
+            self.handle_discounted_course(course["course_id"])
         else:
-            self.handle_discounted_course(course_id)
+            self.print("Unknown Error: Report this link to the developer", color="red")
+            self.excluded_c += 1
 
     def handle_free_course(self, course_id):
         if self.settings["discounted_only"]:
@@ -1015,17 +1042,51 @@ class Udemy:
                         "discountInfo": {"code": coupon},
                         "price": {"amount": 0, "currency": self.currency.upper()},
                     }
-                ]
+                ],
+                "is_cart": True,
             },
         }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US",
+            "Referer": f"https://www.udemy.com/payment/checkout/express/course/{course_id}/?discountCode={coupon}",
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "x-checkout-is-mobile-app": "false",
+            "Origin": "https://www.udemy.com",
+            "DNT": "1",
+            "Sec-GPC": "1",
+            "Connection": "keep-alive",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Priority": "u=0",
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
+        }
+        csrftoken = None
+        for cookie in self.client.cookies:
+            if cookie.name == "csrftoken":
+                csrftoken = cookie.value
+                break
 
-        r: dict = self.client.post(
-            "https://www.udemy.com/payment/checkout-submit/", json=payload
-        ).json()
-        if self.debug:
-            print(r)
+        if csrftoken:
+            headers["X-CSRFToken"] = csrftoken
+        else:
+            raise ValueError("CSRF token not found")
 
-        return {"status": r.get("status") == "succeeded", "detail": r.get("detail")}
+        r = self.client.post(
+            "https://www.udemy.com/payment/checkout-submit/",
+            json=payload,
+            headers=headers,
+        )
+        try:
+            r = r.json()
+        except:
+            self.print(r.text, color="red")
+            self.print("Unknown Error: Report this to the developer", color="red")        
+        return r
 
     def free_checkout(self, course_id):
         self.client.get(f"https://www.udemy.com/course/subscribe/?courseId={course_id}")
@@ -1049,20 +1110,38 @@ class Udemy:
 
     def process_coupon(self, course_id, coupon_code, amount):
         checkout_response = self.discounted_checkout(coupon_code, course_id)
-        if checkout_response["status"]:
+        if msg := checkout_response.get("detail"):
+            self.print(msg, color="red")
+            try:
+                wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
+            except:
+                self.print(
+                    "Unknown Error: Report this link to the developer", color="red"
+                )
+                self.print(checkout_response, color="red")
+                wait_time = 60
+            time.sleep(wait_time + 1)
+            self.process_coupon(course_id, coupon_code, amount)
+        elif checkout_response["status"] == "succeeded":
             self.print("Successfully Enrolled To Course :)", color="green")
             self.print(
-                "This course would have cost you " + str(math.round(amount, 2)) + " EUR. Enjoy!",
+                "This course would have cost you " + str(round(amount, 2)) + " EUR. Enjoy!",
                 color="green",
             )
             self.successfully_enrolled_c += 1
             self.enrolled_courses[course_id] = self.get_now_to_utc()
             self.amount_saved_c += amount
             self.save_course()
-            time.sleep(3.6)
+            time.sleep(3.75)
+        elif checkout_response["status"] == "failed":
+            message = checkout_response["message"]
+            if "item_already_subscribed" in message:
+                self.print("Already Enrolled", color="light blue")
+                self.already_enrolled_c += 1
+            else:
+                self.print("Unknown Error: Report this to the developer", color="red")
+                self.print(checkout_response)
         else:
-            self.print(checkout_response["detail"], color="light blue")
-            wait_time = int(re.search(r"\d+", checkout_response["detail"]).group(0))
-            self.print(f">>> Pausing script for {wait_time} seconds\n", color="red")
-            time.sleep(wait_time + 1)
-            self.process_coupon(course_id, coupon_code, amount)
+            self.print("Unknown Error: Report this to the developer", color="red")
+            self.print(checkout_response)
+

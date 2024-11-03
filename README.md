@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://cdn.discordapp.com/attachments/823472016999972884/847787981045760010/Group_2_2_1.png">
+    <img src="https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/refs/heads/master/extra/promo.gif">
     <br/>
     <img src="https://forthebadge.com/images/badges/made-with-python.svg">
     <br/>
@@ -102,3 +102,8 @@ This is not the official repository, just a set of changes I've made to ensure m
 BTC `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz`
 
 BTC `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
+
+
+<center>
+Made with ❤️
+</center>

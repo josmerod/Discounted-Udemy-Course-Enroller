@@ -11,7 +11,7 @@ def courses_list_get_files():
     """
     files = []
     # Iterate over all files in the 'Courses' directory
-    for file in os.listdir("Courses"):
+    for file in os.listdir("../../Courses"):
         # Check if the file has a '.txt' extension
         if file.endswith(".txt"):  # Good enough...
             files.append(file)
@@ -31,7 +31,7 @@ def courses_list_load_files(files):
     # Process each file in the list
     for file in files:
         # Open the file with UTF-8 encoding to handle special characters
-        with open(f"Courses/{file}", "r", encoding='utf-8') as f:
+        with open(f"../../Courses/{file}", "r", encoding='utf-8') as f:
             lines = f.readlines()
             # Append each line to the data list
             for line in lines:
@@ -84,7 +84,7 @@ def export_file(df):
     # Get the current timestamp formatted for the filename
     timestamp = pd.Timestamp.now().strftime("%Y-%m-%d--%H-%M")
     # Save the DataFrame as a CSV file in the 'Extras/CourseLists' directory
-    df.to_csv(f"Extras/CourseLists/CourseList-{timestamp}.csv", index=False)
+    df.to_csv(f"../../Extras/CourseLists/CourseList-{timestamp}.csv", index=False)
 
 def main():
     """
@@ -99,10 +99,10 @@ def main():
     # Format the courses into a DataFrame
     df = format_courses_list(courses)
     # Ensure the output directories exist
-    if not os.path.exists("Extras"):
-        os.makedirs("Extras")
-    if not os.path.exists("Extras/CourseLists"):
-        os.makedirs("Extras/CourseLists")
+    if not os.path.exists("../../Extras"):
+        os.makedirs("../../Extras")
+    if not os.path.exists("../../Extras/CourseLists"):
+        os.makedirs("../../Extras/CourseLists")
     # Export the DataFrame to a CSV file
     export_file(df)
 

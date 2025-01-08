@@ -5,11 +5,11 @@ from fuzzywuzzy import fuzz
 from fuzzywuzzy import process  
 
 # Load the CSV file and Markdown file paths
-csv_file_path = '../../Extras/CourseLists/CourseList-2024-11-28--03-00.csv'
+csv_file_path = '../../Extras/CourseLists/CourseList-2024-11-28--03-35.csv'
 markdown_file_path = '../../Extras/AuxFiles/Udemy.md'
 
 # Read the CSV file with the list of courses
-course_df = pd.read_csv(csv_file_path)
+course_df = pd.read_csv(csv_file_path, sep="|")
 
 # Read the Markdown file to extract the categories
 with open(markdown_file_path, 'r', encoding='utf-8') as f:
@@ -31,7 +31,7 @@ categories = extract_categories(markdown_content)
 
 # Use fuzzy matching to find similar courses
 filtered_courses = {}
-threshold = 50  # Set a higher threshold for more precise fuzzy matching
+threshold = 70  # Set a higher threshold for more precise fuzzy matching
 for category in categories:
     matches = course_df['name'].apply(lambda x: fuzz.partial_ratio(category.lower(), x.lower()))
     filtered_courses[category] = course_df[matches >= threshold]
@@ -66,6 +66,6 @@ currentTime = pd.Timestamp.now().strftime("%Y-%m-%d--%H-%M")
 
 # Save the recommendations to a CSV file
 export_file_path = folder_path + "/course_recommendations_filtered" + currentTime + ".csv"
-export_df.to_csv(export_file_path, index=False)
+export_df.to_csv(export_file_path, index=False, sep="|")
 
 print(f"Recommendations exported to: {export_file_path}")

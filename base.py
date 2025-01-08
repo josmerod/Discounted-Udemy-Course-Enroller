@@ -181,9 +181,10 @@ class Scraper:
                 )
                 soup = self.parse_html(content)
                 link = soup.find("div", {"class": "ui segment"}).a["href"]
-                if self.debug:
-                    print(title, link)
-                self.append_to_list(self.du_data, title, link)
+                if link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com"):
+                    if self.debug:
+                        print(title, link)
+                    self.append_to_list(self.du_data, title, link)
 
         except:
             self.handle_exception("du")
@@ -209,8 +210,9 @@ class Scraper:
                 link = requests.get(
                     f"https://www.udemyfreebies.com/out/{item['href'].split('/')[4]}"
                 ).url
-                self.append_to_list(self.uf_data, title, link)
-                self.uf_progress = index
+                if link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com"):
+                    self.append_to_list(self.uf_data, title, link)
+                    self.uf_progress = index
 
         except:
             self.handle_exception("uf")
@@ -282,7 +284,7 @@ class Scraper:
                 title: str = item["name"]
                 link: str = item["url"]
                 link = self.cleanup_link(link)
-                if link:
+                if link and (link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com")):
                     self.append_to_list(self.rd_data, title, link)
 
         except:
@@ -330,7 +332,8 @@ class Scraper:
                     "a",
                     {"class": "masterstudy-button-affiliate__link"},
                 )["href"]
-                self.append_to_list(self.cv_data, title, link)
+                if link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com"):
+                    self.append_to_list(self.cv_data, title, link)
 
         except:
             self.handle_exception("cv")
@@ -370,7 +373,8 @@ class Scraper:
                 )
                 link = unquote(r.headers["Location"])
                 link = self.cleanup_link(link)
-                self.append_to_list(self.idc_data, title, link)
+                if link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com"):
+                    self.append_to_list(self.idc_data, title, link)
 
         except:
             self.handle_exception("idc")
@@ -401,8 +405,9 @@ class Scraper:
                 soup = self.parse_html(content)
                 title = soup.find("h3").string.strip()
                 link = soup.find("a", {"class": "btn btn-primary"})["href"]
-                self.append_to_list(self.en_data, title, link)
-
+                if link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com"):
+                    self.append_to_list(self.en_data, title, link)
+            
         except:
             self.handle_exception("en")
         self.en_done = True
@@ -444,7 +449,9 @@ class Scraper:
                     soup_c = self.parse_html(res_c)
                     link_c = soup_c.find("span", id="url").get_text()
                     link = requests.get(link_c, allow_redirects=True).url
-                self.append_to_list(self.cj_data, title, link)
+                    
+                if link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com"):
+                    self.append_to_list(self.cj_data, title, link)
         except:
             self.handle_exception("cj")
         self.cj_done = True
@@ -488,7 +495,8 @@ class Scraper:
                 session = requests.Session()
                 session.strict_redirects = False
                 link = session.get(link, allow_redirects=True).url
-                self.append_to_list(self.cd_data, title, link)
+                if link.startswith("https://www.udemy.com") or link.startswith("http://www.udemy.com"):
+                    self.append_to_list(self.cd_data, title, link)
         except:
             self.handle_exception("cd")
         self.cd_done = True

@@ -84,7 +84,7 @@ def export_file(df):
     # Get the current timestamp formatted for the filename
     timestamp = pd.Timestamp.now().strftime("%Y-%m-%d--%H-%M")
     # Save the DataFrame as a CSV file in the 'Extras/CourseLists' directory
-    df.to_csv(f"../../Extras/CourseLists/CourseList-{timestamp}.csv", index=False)
+    df.to_csv(f"../../Extras/CourseLists/CourseList-{timestamp}.csv", index=False, sep="|")
 
 def main():
     """

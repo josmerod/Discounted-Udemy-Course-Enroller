@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup as bs
 
 from colors import fb, fc, fg, flb, flg, fm, fr, fy
 
-VERSION = "v2.4_jmmr_gold"
+VERSION = "jmmr.2.5"
 
 scraper_dict: dict = {
     "Udemy Freebies": "uf",
@@ -259,13 +259,13 @@ class Scraper:
         try:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Edg/92.0.902.84",
-                "Host": "www.real.discount",
+                "Host": "cdn.real.discount",
                 "Connection": "Keep-Alive",
                 "dnt": "1",
             }
             try:
                 r = requests.get(
-                    "https://www.real.discount/api-web/all-courses/?store=Udemy&page=1&per_page=500&orderby=date&free=1&editorschoices=0",
+                    "https://cdn.real.discount/api/courses?page=1&limit=500&sortBy=sale_start&store=Udemy&freeOnly=true",
                     headers=headers,
                     timeout=(10, 30),
                 ).json()
@@ -274,7 +274,7 @@ class Scraper:
                 self.rd_length = -1
                 self.rd_done = True
                 return
-            all_items.extend(r["results"])
+            all_items.extend(r["items"])
 
             self.rd_length = len(all_items)
             if self.debug:
@@ -507,7 +507,7 @@ class Scraper:
 class Udemy:
     def __init__(self, interface: str, debug: bool = False):
         self.interface = interface
-        self.client = cloudscraper.CloudScraper()
+        self.client = cloudscraper.session()
         headers = {
             "User-Agent": "okhttp/4.9.2 UdemyAndroid 8.9.2(499) (phone)",
             "Accept": "application/json, text/plain, */*",
@@ -1093,7 +1093,8 @@ class Udemy:
             r = r.json()
         except:
             self.print(r.text, color="red")
-            self.print("Unknown Error: Report this to the developer", color="red")        
+            self.print("Unknown Error: Report this to the developer", color="red")
+            return {"status": "failed", "message": "Unknown Error"}        
         return r
 
     def free_checkout(self, course_id):
@@ -1128,7 +1129,7 @@ class Udemy:
                 )
                 self.print(checkout_response, color="red")
                 wait_time = 60
-            time.sleep(wait_time + 1)
+            time.sleep(wait_time + 1.5)
             self.process_coupon(course_id, coupon_code, amount)
         elif checkout_response["status"] == "succeeded":
             self.print("Successfully Enrolled To Course :)", color="green")
@@ -1140,7 +1141,7 @@ class Udemy:
             self.enrolled_courses[course_id] = self.get_now_to_utc()
             self.amount_saved_c += amount
             self.save_course()
-            time.sleep(3.75)
+            time.sleep(3.8)
         elif checkout_response["status"] == "failed":
             message = checkout_response["message"]
             if "item_already_subscribed" in message:
